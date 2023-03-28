@@ -1,8 +1,5 @@
-#!/usr/bin/env python
 import os
-import sys
 import argparse
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -19,15 +16,14 @@ def is_signature(line):
         line.startswith('Sincerely,'),
         line.startswith(' -----Original Message-----'),
     ]
-    # If any of CONDITIONS is true, return True
     return any(CONDITIONS)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert directories into table.")
-    parser.add_argument("inputdir", type=str, help="The root of the author directories.")
-    parser.add_argument("outputfile", type=str, help="The name of the output file containing the table of instances.")
-    parser.add_argument("dims", type=int, help="The output feature dimensions.")
+    parser.add_argument("--inputdir", "-i", type=str, help="The root of the author directories.")
+    parser.add_argument("--outputfile", "-o", type=str, help="The name of the output file containing the table of instances.")
+    parser.add_argument("--dims", "-d", type=int, help="The output feature dimensions.")
     parser.add_argument("--test", "-T", dest="testsize", type=int, default="20", help="The percentage (integer) of instances to label as test.")
 
     args = parser.parse_args()
@@ -66,8 +62,8 @@ if __name__ == "__main__":
     y_train_vec = vectorizer.transform(y_train)
     y_test_vec = vectorizer.transform(y_test)
     # Store all data in a single DataFrame
-    df_train = pd.DataFrame(X_train_vec.toarray(), columns=vectorizer.get_feature_names())
-    df_test = pd.DataFrame(X_test_vec.toarray(), columns=vectorizer.get_feature_names())
+    df_train = pd.DataFrame(X_train_vec.toarray(), columns=vectorizer.get_feature_names_out())
+    df_test = pd.DataFrame(X_test_vec.toarray(), columns=vectorizer.get_feature_names_out())
     df_train['label'] = y_train
     df_test['label'] = y_test
     df_train['train'] = True

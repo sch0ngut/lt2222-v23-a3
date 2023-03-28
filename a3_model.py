@@ -1,24 +1,17 @@
-import os
-import sys
 import argparse
-import numpy as np
 import pandas as pd
-import torch
 from torch import nn
 from torch import optim
 from torch.utils.data import DataLoader
 from model import EmailDataset, Model
-# Whatever other imports you need
 
-# You can implement classes and helper functions here too.
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train and test a model on features.")
     parser.add_argument("--featurefile", type=str, default='emails.csv', help="The file containing the table of instances and features.")
-    parser.add_argument("--epochs", type=int, default=10, help="Number of epochs to train for.")
-    # Add options here for part 3 -- hidden layer and nonlinearity,
-    # and any other options you may think you want/need.  Document
-    # everything.
+    parser.add_argument("--epochs", type=int, default=100, help="Number of epochs to train for.")
+    parser.add_argument("--n_hidden", type=int, default=100, help="Number of hidden units.")
+    parser.add_argument("--nonlinearity", type=str, default='tanh', help="Nonlinearity to use.")
     
     args = parser.parse_args()
 
@@ -30,10 +23,8 @@ if __name__ == "__main__":
 
     # Initialize the model
     n_features = train.features.shape[1]
-    # The number of labels are the unique values in the labels column
     n_labels = len(train.labels.unique())
-    breakpoint()
-    model = Model(n_features, n_labels)
+    model = Model(n_features, n_labels, args.n_hidden, args.nonlinearity)
     optimizer = optim.Adam(model.parameters(), lr=0.002)
     loss_function = nn.CrossEntropyLoss()
 
@@ -47,6 +38,17 @@ if __name__ == "__main__":
             optimizer.step()
             optimizer.zero_grad()
         print("Loss: {}".format(loss.item()))
+
+    # Test the model on the test set
+    test_dataloader = DataLoader(test, batch_size=len(test), shuffle=True)
+    test_features, test_labels = iter(test_dataloader).next()
+    predictions = model(test_features).argmax(dim=1)
+    # Compute the accuracy
+    accuracy = (predictions == test_labels).numpy().mean()
+    print("Accuracy: {}".format(accuracy))
+    # Print the confusion matrix
+    print(pd.crosstab(pd.Series(predictions.numpy(), name='Predicted'), pd.Series(test_labels, name='Actual')))
+
 
 
     
